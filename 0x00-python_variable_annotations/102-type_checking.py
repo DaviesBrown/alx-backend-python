@@ -3,10 +3,10 @@
 102-type_checking
 """
 
-from typing import Iterable, List, Tuple
+from typing import Any, Iterable, List, Tuple
 
 
-def zoom_array(lst: Tuple, factor: int = 2) -> List:
+def zoom_array(lst: Tuple[Any, ...], factor: int = 2) -> List:
     """
     zoom array
     """
