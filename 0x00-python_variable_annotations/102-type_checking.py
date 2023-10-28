@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
+
 """
-102-type_checking
+Type checking annotated  module
 """
 
-from typing import Any, Iterable, List, Tuple
+from typing import Tuple, List
 
 
-def zoom_array(lst: Tuple[Any, ...], factor: int = 2) -> List:
+def zoom_array(lst: Tuple, factor: int = 2) -> List:
     """
-    zoom array
+    Zoomed Array
     """
-    zoomed_in: List = [
-        item for item in lst
-        for i in range(int(factor))
-    ]
+    zoomed_in = []
+    for item in lst:
+        for i in range(factor):
+            zoomed_in.append(i)
     return zoomed_in
 
 
-array = [12, 72, 91]
+array = (12, 72, 91)
 
 zoom_2x = zoom_array(array)
 
-zoom_3x = zoom_array(array, 3.0)
+zoom_3x = zoom_array(array, 3)
