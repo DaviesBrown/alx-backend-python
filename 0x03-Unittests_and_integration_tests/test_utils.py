@@ -14,17 +14,17 @@ class TestAccessNestedMap(unittest.TestCase):
     TestAccessNestedMap class that inherits from unittest.TestCas
     """
     @parameterized.expand([
-        param(nested_map={"a": 1}, path=("a",), expected=1),
-        param(nested_map={"a": {"b": 2}}, path=("a",), expected={"b": 2}),
-        param(nested_map={"a": {"b": 2}}, path=("a", "b"), expected=2)
+        ({"a": 1}, ("a",), 1),
+        ({"a": {"b": 2}}, ("a",), {"b": 2}),
+        ({"a": {"b": 2}}, ("a", "b"), 2)
     ])
     def test_access_nested_map(self, nested_map, path, expected):
         """ unit test for utils.access_nested_map"""
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
-        param(nested_map={}, path=("a",), expected=KeyError),
-        param(nested_map={"a": 1}, path=("a", "b"), expected=KeyError)
+        ({}, ("a",), KeyError),
+        ({"a": 1}, ("a", "b"), KeyError)
     ])
     def test_access_nested_map_exception(self, nested_map, path, expected):
         """ KeyError is raised for the following inputs"""
@@ -35,8 +35,8 @@ class TestAccessNestedMap(unittest.TestCase):
 class TestGetJson(unittest.TestCase):
     """ TestGetJson class"""
     @parameterized.expand([
-        param(test_url="http://example.com", test_payload={"payload": True}),
-        param(test_url="http://holberton.io", test_payload={"payload": False})
+        ("http://example.com", {"payload": True}),
+        ("http://holberton.io", {"payload": False})
     ])
     def test_get_json(self, test_url, test_payload):
         """ test that utils.get_json returns the expected result"""
