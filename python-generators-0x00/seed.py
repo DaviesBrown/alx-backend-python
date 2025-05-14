@@ -1,5 +1,7 @@
 #!/usr/bin/python3
+import csv
 import mysql.connector
+import uuid
 
 
 def connect_db():
@@ -13,7 +15,7 @@ def connect_db():
 def create_database(connection):
     "creates the database ALX_prodev if it does not exist"
     mycursor = connection.cursor()
-    mycursor.execute("CREATE DATABASE ALX_prodev")
+    mycursor.execute("CREATE DATABASE IF NOT EXISTS ALX_prodev")
 
 def connect_to_prodev():
     "connects the the ALX_prodev database in MYSQL"
@@ -38,4 +40,15 @@ def create_table(connection):
     """)
 
 def insert_data(connection, data):
-    "inserts data in the database if it does not exist"
+    "inserts data from a csv file in the database if it does not exist"
+    cursor = connection.cursor()
+    with open(data, 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            cursor.execute("""
+                INSERT IGNORE INTO user_data (id, name, age, email)
+                VALUES (%s, %s, %s, %s)
+            """, (str(uuid.uuid4()), row['name'], row['age'], row['email']))
+    connection.commit()
+    cursor.close()
+
