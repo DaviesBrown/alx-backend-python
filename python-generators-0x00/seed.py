@@ -16,6 +16,12 @@ def create_database(connection):
     mycursor.execute("CREATE DATABASE ALX_prodev")
 def connect_to_prodev():
     "connects the the ALX_prodev database in MYSQL"
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="password",
+        database="ALX_prodev"
+    )
 def create_table(connection):
     "creates a table user_data if it does not exists with the required fields"
 def insert_data(connection, data):
