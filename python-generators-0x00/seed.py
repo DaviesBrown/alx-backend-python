@@ -12,7 +12,8 @@ def connect_db():
 
 def create_database(connection):
     "creates the database ALX_prodev if it does not exist"
-    
+    mycursor = connection.cursor()
+    mycursor.execute("CREATE DATABASE ALX_prodev")
 def connect_to_prodev():
     "connects the the ALX_prodev database in MYSQL"
 def create_table(connection):
