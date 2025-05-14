@@ -4,7 +4,6 @@ import mysql.connector
 
 def stream_users():
     """Generator function that yields user data from a database."""
-
     connection = mysql.connector.connect(
         host="localhost",
         user="root",
