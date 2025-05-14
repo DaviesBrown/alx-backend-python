@@ -34,8 +34,7 @@ def create_table(connection):
             id CHAR(36) PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             age INT NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            email VARCHAR(255) NOT NULL
         )
     """)
 
