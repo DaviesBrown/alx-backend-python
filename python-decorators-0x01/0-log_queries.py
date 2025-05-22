@@ -1,8 +1,8 @@
 import sqlite3
 import functools
 
-#### decorator to lof SQL queries
 def log_queries(fn):
+    """Log all queries before sql execution"""
     def wrapper(query):
         print(query)
         fn(query)
@@ -18,4 +18,4 @@ def fetch_all_users(query):
     return results
 
 #### fetch users while logging the query
-users = fetch_all_users(query="SELECT * FROM users")
+users = fetch_all_users(query=f"INSERT INTO users (id, name, age, email) VALUES ({num}, {row['name']}, {row['age']}, {row['email']})")
