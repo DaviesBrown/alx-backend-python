@@ -1,6 +1,8 @@
 import asyncio
 import aiosqlite
 
+db_path = "async.db"
+
 async def setup_sample_database(db_path):
     """Create a sample SQLite database with users table for demonstration."""
     async with aiosqlite.connect(db_path) as db:
@@ -41,7 +43,7 @@ async def setup_sample_database(db_path):
         await db.commit()
         print("Sample SQLite database setup complete")
 
-async def async_fetch_users(db_path):
+async def async_fetch_users():
     """
     Asynchronous function to fetch all users.
     
@@ -58,7 +60,7 @@ async def async_fetch_users(db_path):
     await db.close()
     return results
 
-async def async_fetch_older_users(db_path, age):
+async def async_fetch_older_users():
     """
     Asynchronous function to fetch users older than a specified age.
     
@@ -70,7 +72,7 @@ async def async_fetch_older_users(db_path, age):
         list: Users older than the specified age
     """
     async with aiosqlite.connect(db_path) as db:
-        cursor = await db.execute(f"SELECT * FROM users WHERE age > ? ORDER BY age DESC", (age,))
+        cursor = await db.execute(f"SELECT * FROM users WHERE age > 40 ORDER BY age DESC")
         results = await cursor.fetchall()
         await cursor.close()
         return results
@@ -79,12 +81,11 @@ async def fetch_concurrently():
     """
     Function to run multiple database queries concurrently using asyncio.gather().
     """
-    db_path = "async.db"
     await setup_sample_database(db_path)
 
     all_users, older_users = await asyncio.gather(
-        async_fetch_users(db_path),
-        async_fetch_older_users(db_path, 40)
+        async_fetch_users(),
+        async_fetch_older_users()
     )
     # Display results
     print("\n" + "="*60)
