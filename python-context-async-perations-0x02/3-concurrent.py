@@ -84,7 +84,7 @@ async def fetch_concurrently():
 
     all_users, older_users = await asyncio.gather(
         async_fetch_users(db_path),
-        async_fetch_older_users(db_path, 25)
+        async_fetch_older_users(db_path, 40)
     )
     # Display results
     print("\n" + "="*60)
