@@ -2,7 +2,8 @@ import sqlite3
 import functools
 
 def log_queries(fn):
-    """Log all queries before sql execution"""
+    """Decorator that log all queries before sql execution"""
+    @functools.wraps(fn)
     def wrapper(query):
         print(query)
         fn(query)
@@ -10,6 +11,7 @@ def log_queries(fn):
 
 @log_queries
 def fetch_all_users(query):
+    """Fetch all users from user table"""
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     cursor.execute(query)
@@ -18,4 +20,4 @@ def fetch_all_users(query):
     return results
 
 #### fetch users while logging the query
-users = fetch_all_users(query=f"INSERT INTO users (id, name, age, email) VALUES ({num}, {row['name']}, {row['age']}, {row['email']})")
+users = fetch_all_users(query="SELECT * FROM users")
