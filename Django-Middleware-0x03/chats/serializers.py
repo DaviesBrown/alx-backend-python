@@ -1,7 +1,7 @@
 # chats/serializers.py
 
 from rest_framework import serializers
-from .models import CustomUser, Message, Conversation
+from .models import User, Message, Conversation
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     Only exposes fields we want the client to see.
     """
     class Meta:
-        model = CustomUser
+        model = User
         fields = ['id', 'username', 'avatar', 'status_message']
 
 
