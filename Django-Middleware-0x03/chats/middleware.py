@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import logging
 from datetime import datetime, time
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from rest_framework.response import Response
 from rest_framework.request import Request
 
@@ -62,5 +62,25 @@ class OffensiveLanguageMiddleware:
                 return JsonResponse({'error': 'Rate limit exceeded. Only 5 messages per minute allowed.'}, status=429)
 
             self.requests[ip].append(now)
+
+        return self.get_response(request)
+
+
+class RolePermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # You can limit this check to specific paths if needed
+        protected_paths = ['/admin-only/', '/moderator-zone/']  # customize as needed
+
+        if any(request.path.startswith(path) for path in protected_paths):
+            if not request.user.is_authenticated:
+                return HttpResponseForbidden("Authentication required.")
+
+            user_role = getattr(request.user, 'role', None)
+
+            if user_role not in ['admin', 'moderator']:
+                return HttpResponseForbidden("You do not have permission to access this resource.")
 
         return self.get_response(request)
