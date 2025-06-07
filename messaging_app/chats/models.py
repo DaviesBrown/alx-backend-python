@@ -12,8 +12,8 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     password = models.CharField(max_length=128)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     def __str__(self):
         return self.email

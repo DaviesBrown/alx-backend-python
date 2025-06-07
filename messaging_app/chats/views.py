@@ -1,9 +1,18 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
-from .models import Conversation, Message
-from .serializers import ConversationSerializer, MessageSerializer
+from rest_framework.permissions import AllowAny
+from .models import Conversation, Message, User
+from .serializers import UserSerializer, ConversationSerializer, MessageSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 
+class UserViewSet(viewsets.ModelViewSet):
+    """User View Set"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['username', 'email']
+    filterset_fields = ['is_active', 'is_staff']
 
 class ConversationViewSet(viewsets.ModelViewSet):
     """Conversation View Set"""
@@ -22,6 +31,10 @@ class ConversationViewSet(viewsets.ModelViewSet):
         }
         """
         participant_ids = request.data.get("participant_ids", [])
+        if request.user.is_authenticated:
+            current_user_id = str(request.user.user_id)
+            if current_user_id not in participant_ids:
+                participant_ids.append(current_user_id)
         if not participant_ids:
             return Response({"error": "participant_ids list required"}, status=status.HTTP_400_BAD_REQUEST)
         
