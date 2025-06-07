@@ -66,13 +66,12 @@ class OffensiveLanguageMiddleware:
         return self.get_response(request)
 
 
-class RolePermissionMiddleware:
+class RolepermissionMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # You can limit this check to specific paths if needed
-        protected_paths = ['/admin-only/', '/moderator-zone/']  # customize as needed
+        protected_paths = ['/admin/', '/api/']
 
         if any(request.path.startswith(path) for path in protected_paths):
             if not request.user.is_authenticated:
