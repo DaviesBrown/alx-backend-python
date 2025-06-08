@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-class IsChatParticipant(BasePermission):
+class IsParticipantOfConversation(BasePermission):
     """
     Custom permission to only allow participants of a chat to access it.
     """
