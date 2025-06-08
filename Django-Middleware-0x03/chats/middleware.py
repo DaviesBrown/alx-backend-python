@@ -7,7 +7,7 @@ from rest_framework.request import Request
 
 logger = logging.getLogger('middleware_logger')
 
-class RequestLoggerMiddleware:
+class RequestLoggingMiddleware:
     """
     Middleware to log the request method and path.
     """
