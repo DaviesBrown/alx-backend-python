@@ -3,17 +3,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsParticipantOfConversation
 from .models import Conversation, Message, User
-from .serializers import UserSerializer, ConversationSerializer, MessageSerializer
+from .pagination import MessagePagination
+from .filters import MessageFilter
+from .serializers import ConversationSerializer, MessageSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 
-class UserViewSet(viewsets.ModelViewSet):
-    """User View Set"""
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, IsParticipantOfConversation]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['username', 'email']
-    filterset_fields = ['is_active', 'is_staff']
 
 class ConversationViewSet(viewsets.ModelViewSet):
     """Conversation View Set"""
@@ -50,9 +44,10 @@ class MessageViewSet(viewsets.ModelViewSet):
     """Message View Set"""
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['conversation']
-    search_fields = ['content']
+    permission_classes = [IsAuthenticated, IsParticipantOfConversation]
+    pagination_class = MessagePagination
+    filter_backends = [DjangoFilterBackend]
+    filter_class = MessageFilter
 
     def perform_create(self, serializer):
         """
