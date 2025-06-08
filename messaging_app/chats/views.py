@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsParticipantOfConversation
 from .models import Conversation, Message, User
 from .serializers import UserSerializer, ConversationSerializer, MessageSerializer
 from django_filters.rest_framework import DjangoFilterBackend
@@ -9,7 +10,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """User View Set"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsParticipantOfConversation]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['username', 'email']
     filterset_fields = ['is_active', 'is_staff']
@@ -18,6 +19,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     """Conversation View Set"""
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    permission_classes = [IsAuthenticated, IsParticipantOfConversation]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = ['created_at']
     ordering = ['-created_at']
