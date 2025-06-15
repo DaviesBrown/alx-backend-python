@@ -64,6 +64,8 @@ class MessageHistory(models.Model):
     """
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
     content = models.TextField()
+    edited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='message_history')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
