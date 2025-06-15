@@ -1,0 +1,211 @@
+To test your **messaging API** using **Postman**, follow this complete guide:
+
+---
+
+## ✅ Pre-requisites
+
+1. Your Django server is running (e.g., at `http://127.0.0.1:8000/`)
+2. You’ve created users via the Django admin or the API
+3. Endpoints are protected with JWT (as configured earlier)
+
+---
+
+## 🔐 Step 1: Obtain JWT Access Token
+
+**Endpoint:**
+`POST /api/token/`
+
+**Request Body (JSON):**
+
+```json
+{
+  "username": "testuser",
+  "password": "testpassword"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access": "your-access-token",
+  "refresh": "your-refresh-token"
+}
+```
+
+### ✅ In Postman
+
+* Save the **`access` token**
+* Click "Authorization" tab > Select `Bearer Token` > Paste the access token
+
+---
+
+## 💬 Step 2: Create a Conversation
+
+**Endpoint:**
+`POST /api/conversations/`
+
+**Headers:**
+
+* `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+
+```json
+{
+  "participants": [1, 2]  // user IDs
+}
+```
+
+**Expected Response:**
+
+```json
+{
+  "id": 1,
+  "participants": [1, 2],
+  "created_at": "2025-06-08T..."
+}
+```
+
+---
+
+## 📨 Step 3: Send a Message in a Conversation
+
+**Endpoint:**
+`POST /api/messages/`
+
+**Headers:**
+
+* `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+
+```json
+{
+  "conversation": 1,
+  "sender": 1,
+  "content": "Hello from testuser!"
+}
+```
+
+**Expected Response:**
+
+```json
+{
+  "id": 1,
+  "conversation": 1,
+  "sender": 1,
+  "content": "Hello from testuser!",
+  "timestamp": "2025-06-08T..."
+}
+```
+
+---
+
+## 📥 Step 4: Fetch All Conversations
+
+**Endpoint:**
+`GET /api/conversations/`
+
+**Headers:**
+
+* `Authorization: Bearer <access_token>`
+
+**Expected Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "participants": [1, 2],
+    "created_at": "..."
+  }
+]
+```
+
+---
+
+## 📨 Step 5: Fetch All Messages in a Conversation
+
+**Endpoint:**
+`GET /api/messages/?conversation=1`
+
+**Headers:**
+
+* `Authorization: Bearer <access_token>`
+
+**Expected Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "conversation": 1,
+    "sender": 1,
+    "content": "Hello from testuser!",
+    "timestamp": "..."
+  }
+]
+```
+
+---
+
+## 🚫 Step 6: Test Unauthorized Access
+
+**Try without `Authorization` header**:
+
+* `GET /api/conversations/`
+* `POST /api/messages/`
+
+**Expected Response:**
+
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+---
+
+## 🚫 Step 7: Test Access to Conversations You Don’t Belong To
+
+**Login as another user who is **not** in the conversation.**
+
+* `GET /api/conversations/1/`
+* `GET /api/messages/?conversation=1`
+
+**Expected:**
+403 Forbidden (from custom permission class)
+
+```json
+{
+  "detail": "You do not have permission to perform this action."
+}
+```
+
+---
+
+## 🧪 Bonus: Refresh Token
+
+**Endpoint:**
+`POST /api/token/refresh/`
+
+**Body:**
+
+```json
+{
+  "refresh": "your-refresh-token"
+}
+```
+
+**Expected:**
+
+```json
+{
+  "access": "new-access-token"
+}
+```
+
+---
+
+If you'd like, I can provide a ready-made Postman collection file for import. Let me know.
