@@ -1,66 +1,85 @@
-from rest_framework import viewsets, status, filters
-from rest_framework.response import Response
+# config/chats/views.py
+
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
-from .permissions import IsParticipantOfConversation
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+
 from .models import Conversation, Message, User
+from .serializers import ConversationSerializer, MessageSerializer, serializers
+from .permissions import IsParticipantOfConversation
 from .pagination import MessagePagination
 from .filters import MessageFilter
-from .serializers import ConversationSerializer, MessageSerializer
-from django_filters.rest_framework import DjangoFilterBackend
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    """Conversation View Set"""
-    queryset = Conversation.objects.all()
+    """
+    API endpoint that allows conversations to be viewed or created.
+    Permissions are handled to ensure users can only access their own conversations.
+    """
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated, IsParticipantOfConversation]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
 
-    def create(self, request, *args, **kwargs):
+    def get_queryset(self):
         """
-        Create a new conversation by accepting a list of participant IDs
-        Body:
-        {
-            "participant_ids": [1, 2, 3]
-        }
+        This view should return a list of all the conversations
+        for the currently authenticated user.
         """
-        participant_ids = request.data.get("participant_ids", [])
-        if request.user.is_authenticated:
-            current_user_id = str(request.user.user_id)
-            if current_user_id not in participant_ids:
-                participant_ids.append(current_user_id)
-        if not participant_ids:
-            return Response({"error": "participant_ids list required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        conversation = Conversation.objects.create()
-        conversation.participants.set(participant_ids)
-        serializer = self.get_serializer(conversation)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-class MessageViewSet(viewsets.ModelViewSet):
-    """Message View Set"""
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated, IsParticipantOfConversation]
-    pagination_class = MessagePagination
-    filter_backends = [DjangoFilterBackend]
-    filter_class = MessageFilter
-
-    @method_decorator(cache_page(60))
-    def list(self, request, *args, **kwargs):
-        """
-        List messages in a conversation
-        """
-        return super().list(request, *args, **kwargs)
+        return self.request.user.conversations.prefetch_related('participants', 'messages').all()
 
     def perform_create(self, serializer):
         """
-        When sending a message, automatically set the sender to the authenticated user
+        Override to add the creating user to the participants list.
         """
-        serializer.save(sender=self.request.user)
+        participants_data = serializer.validated_data.get(
+            'participant_ids', [])
+        participants_users = User.objects.filter(id__in=participants_data)
 
+        # Add the current user to the conversation
+        conversation = serializer.save()
+        conversation.participants.add(self.request.user)
+        conversation.participants.add(*participants_users)
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows messages to be viewed or created within a conversation.
+    - Pagination is enabled (20 messages per page).
+    - Filtering is enabled by sender username and date range.
+    """
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = MessagePagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MessageFilter
+
+    def get_queryset(self):
+        """
+        Returns a list of messages for a specific conversation,
+        identified by `conversation_pk` from the URL.
+        """
+        conversation_pk = self.kwargs.get('conversation_pk')
+        if conversation_pk:
+            # Ensure the user has permission to view messages in this conversation
+            try:
+                conversation = Conversation.objects.get(pk=conversation_pk)
+                if self.request.user in conversation.participants.all():
+                    return conversation.messages.all().order_by('timestamp')
+            except Conversation.DoesNotExist:
+                return Message.objects.none()
+        return Message.objects.none()
+
+    def perform_create(self, serializer):
+        """
+        Creates a message and assigns the sender and conversation automatically.
+        """
+        conversation_pk = self.kwargs.get('conversation_pk')
+        try:
+            conversation = Conversation.objects.get(pk=conversation_pk)
+        except Conversation.DoesNotExist:
+            # This case should ideally not be hit if permissions are checked correctly
+            raise serializers.ValidationError("Conversation not found.")
+
+        # The IsParticipantOfConversation permission on the ConversationViewSet
+        # already ensures the user is part of the conversation.
+        serializer.save(sender=self.request.user, conversation=conversation)

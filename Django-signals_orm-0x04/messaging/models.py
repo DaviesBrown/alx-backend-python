@@ -1,45 +1,82 @@
-import uuid
+# config/chats/models.py
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 
 
 class User(AbstractUser):
     """
-    Custom User model that extends Django's AbstractUser.
+    Custom User model extending Django's AbstractUser.
+    Added a 'role' field for implementing role-based access control.
     """
-    user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    password = models.CharField(max_length=128)
+    class Role(models.TextChoices):
+        USER = 'USER', 'User'
+        MODERATOR = 'MODERATOR', 'Moderator'
+        ADMIN = 'ADMIN', 'Admin'
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
+    email = models.EmailField(unique=True)
+    role = models.CharField(
+        max_length=50, choices=Role.choices, default=Role.USER)
 
     def __str__(self):
-        return self.email
+        return self.username
 
 
 class Conversation(models.Model):
     """
-    Model representing a conversation between users.
+    Represents a conversation between two or more users.
+    The 'participants' field is a ManyToMany relationship with the User model.
     """
-    conversation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     participants = models.ManyToManyField(User, related_name='conversations')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Conversation {self.conversation_id}"
+        return f"Conversation ({self.id}) between: {', '.join([user.username for user in self.participants.all()])}"
 
 
 class Message(models.Model):
     """
-    Model representing a message in a conversation.
+    Represents a single message within a conversation.
+    It has a foreign key to the Conversation it belongs to and the User who sent it.
     """
-    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    message_body = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_edited = models.BooleanField(default=False)
+    # conversation = models.ForeignKey(
+    #     Conversation, on_delete=models.CASCADE, related_name='messages')
+
+    class Meta:
+        ordering = ['timestamp']
 
     def __str__(self):
-        return f"Message {self.message_id} in Conversation {self.conversation.conversation_id}"
+        return f"From {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+
+
+class MessageHistory(models.Model):
+    """
+    Abstract model to track message history.
+    It can be extended by other models to keep a history of changes.
+    """
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"History for message {self.message.id} at {self.timestamp}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    message = models.ForeignKey(
+        Message, on_delete=models.CASCADE, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.username} about message {self.message.id}"
