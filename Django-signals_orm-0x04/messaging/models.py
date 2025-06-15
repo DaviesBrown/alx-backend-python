@@ -46,7 +46,7 @@ class Message(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    is_edited = models.BooleanField(default=False)
+    edited_at = models.BooleanField(default=False)
     # conversation = models.ForeignKey(
     #     Conversation, on_delete=models.CASCADE, related_name='messages')
 
