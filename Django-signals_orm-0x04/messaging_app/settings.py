@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'chats',
+    'messaging',
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
@@ -172,4 +172,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'chats.User'
+AUTH_USER_MODEL = 'messaging.User'
