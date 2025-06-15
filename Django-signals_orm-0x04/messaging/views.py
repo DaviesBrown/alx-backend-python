@@ -83,3 +83,50 @@ class MessageViewSet(viewsets.ModelViewSet):
         # The IsParticipantOfConversation permission on the ConversationViewSet
         # already ensures the user is part of the conversation.
         serializer.save(sender=self.request.user, conversation=conversation)
+
+class UserViewSet(viewsets.ModelViewSet):
+    """User View Set with account deletion functionality"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['delete'], url_path='delete-account')
+    def delete_user(self, request):
+        """
+        Delete the authenticated user's account
+        This will trigger the post_delete signal to clean up related data
+        """
+        user = request.user
+        
+        # Optional: Add confirmation check
+        confirmation = request.data.get('confirm_deletion', False)
+        if not confirmation:
+            return Response(
+                {"error": "Account deletion requires confirmation. Set 'confirm_deletion': true"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Log out the user before deletion
+            logout(request)
+            
+            # Store user info for response
+            user_id = user.user_id
+            username = getattr(user, 'username', 'User')
+            
+            # Delete the user - this will trigger the post_delete signal
+            user.delete()
+            
+            return Response(
+                {
+                    "message": f"User account {username} (ID: {user_id}) has been successfully deleted",
+                    "deleted_user_id": user_id
+                }, 
+                status=status.HTTP_200_OK
+            )
+            
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to delete account: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
