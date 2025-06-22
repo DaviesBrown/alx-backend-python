@@ -12,7 +12,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: /usr/local/bin/entrypoint.sh # Use the new script
+    command: "python3 manage.py runserver"
   db:
     image: mysql:8.0
     restart: always
