@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "Scaling to 3 replicas..."
+kubectl scale deployment django-messaging --replicas=3
+
+echo "Checking pods..."
+kubectl get pods
+
+echo "Running load test (wrk)..."
+wrk http://<minikube-ip>:<node-port>
+
+echo "Monitoring resource usage..."
+kubectl top pods
